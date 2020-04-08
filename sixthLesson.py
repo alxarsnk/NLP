@@ -7,6 +7,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.utils import to_categorical
 import pickle
+from sklearn.metrics import classification_report
 import keras_metrics
 
 
@@ -115,34 +116,24 @@ x_test = getX_model(test).values
 y_train = df["label"].values
 y_test = test["label"].values
 
-dense = 512
+num_classes = 3
 
-y_train = to_categorical(y_train, dense)
-y_test = to_categorical(y_test, dense)
-
-print(x_train)
-print(y_train)
+y_train = to_categorical(y_train, num_classes)
+y_test = to_categorical(y_test, num_classes)
 
 model = Sequential()
 
-model.add(Dense(dense, input_shape=(500,), activation="sigmoid"))
-model.add(Dropout(0.5))
-model.add(Dense(dense,activation="sigmoid"))
+model.add(Dense(512, input_shape=(499,)))
+model.add(Dense(3))
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
-              metrics=['accuracy',keras.metrics.Recall(),keras.metrics.Precision()])
+              metrics=['accuracy'])
 
 model.fit(x_train, y_train, epochs=10, batch_size=128)
-classes = model.evaluate(x_test,y_test,batch_size=128)
-
-print(classes)
-
-accuracy = classes[1]
-precision = classes[3]
-recall = classes[2]
-f_measure = 2*precision*recall/(precision+recall)
+predictions = model.predict(x_test)
 
 
-resultDF = pandas.DataFrame(columns=["Accuracy", "Precision","Recall","F measure"])
-resultDF.loc[0] = [accuracy,precision,recall,f_measure]
-print(resultDF)
+print(predictions)
+print(y_test)
+print(classification_report(y_test.argmax(axis=1), predictions.argmax(axis=1)))
+
